@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -24,7 +25,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeDTO> getAllEmployees() {
        List<Employee> employees = employeeRepository.findAll();
         // 2- second way
-        return employees.stream().map(temp -> EntityToDto(temp)).collect(Collectors.toList());
+        return employees.stream().map(temp -> entityToDto(temp)).collect(Collectors.toList());
 
 //       1- first way
 //       List<EmployeeDTO> employeeListDTO = new ArrayList<>();
@@ -38,14 +39,51 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
 
+    // create new Employee
+    @Override
+    public EmployeeDTO createEmployeeDTO(EmployeeDTO employeeDTO) {
+        Employee employee = dtoToEntity(employeeDTO);
+        Employee newEmployee = employeeRepository.save(employee);
+
+        EmployeeDTO employeeDTO1 = entityToDto(newEmployee);
+        return employeeDTO1;
+    }
+
+    @Override
+    public EmployeeDTO getEmployee(Long id) {
+        Optional<Employee> employee = employeeRepository.findById(id);
+        Employee employee1 = employee.get();
+        return entityToDto(employee1);
+    }
+
+    @Override
+    public EmployeeDTO updateEmployee(EmployeeDTO employeeDTO) {
+        Employee existingEmployee = employeeRepository.findById(employeeDTO.getId()).get();
+        existingEmployee.setEmployeeCode(employeeDTO.getEmployeeCode());
+        existingEmployee.setFirstName(employeeDTO.getFirstName());
+        existingEmployee.setLastName(employeeDTO.getLastName());
+        existingEmployee.setEmail(employeeDTO.getEmail());
+        existingEmployee.setGender(employeeDTO.getGender());
+        existingEmployee.setJobTitle(employeeDTO.getJobTitle());
+        existingEmployee.setPhone(employeeDTO.getPhone());
+        Employee employeeEntity = employeeRepository.save(existingEmployee);
+        return entityToDto(employeeEntity);
+    }
+
+    @Override
+    public void deleteEmployee(Long id) {
+        employeeRepository.deleteById(id);
+    }
+
+
     // convert Entity to DTO
-    public EmployeeDTO EntityToDto(Employee employee){
+    public EmployeeDTO entityToDto(Employee employee){
         EmployeeDTO employeeDTO = modelMapper.map(employee, EmployeeDTO.class);
         return employeeDTO;
     }
 
     // convert DTO to Entity
-    public Employee DtoToEntity(EmployeeDTO employeeDTO){
+    public Employee dtoToEntity(EmployeeDTO employeeDTO){
          Employee employee = modelMapper.map(employeeDTO, Employee.class);
          return employee;
     }
